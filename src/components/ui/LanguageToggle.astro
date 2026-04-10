@@ -1,12 +1,26 @@
 ---
 import { languages } from '../../i18n/ui';
-import { getLangFromUrl } from '../../i18n/utils';
+import { getLangFromUrl, useTranslatedPath } from '../../i18n/utils';
 
 const lang = getLangFromUrl(Astro.url);
-const path = Astro.url.pathname.replace(/^\/(en|zh)/, ''); // Remove current lang prefix
+const base = import.meta.env.BASE_URL;
+let pathname = Astro.url.pathname;
+
+// Strip out Github Pages Base URL to resolve relative internal path
+if (base && base !== '/' && pathname.startsWith(base)) {
+  pathname = pathname.substring(base.length);
+}
+if (!pathname.startsWith('/')) {
+  pathname = '/' + pathname;
+}
+
+// Strip out current language prefix
+const strippedPath = pathname.replace(/^\/(en|zh)/, ''); 
 
 const targetLang = lang === 'en' ? 'zh' : 'en';
-const targetPath = `/${targetLang}${path || '/'}`;
+const translatePath = useTranslatedPath(targetLang);
+const targetPath = translatePath(strippedPath);
+
 const label = lang === 'en' ? 'ZH' : 'EN';
 ---
 
