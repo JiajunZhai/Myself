@@ -9,12 +9,13 @@ import { defineConfig, fontProviders } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
-const isBuild = process.argv.includes('build') || process.env.npm_lifecycle_event === 'build';
+// Detect if running inside GitHub Actions CI
+const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
 
 export default defineConfig({
     site: 'https://JiajunZhai.github.io',
-    ...(isBuild ? { base: '/Myself' } : {}),
-    integrations: [mdx(), sitemap(), react(), ...(isBuild ? [] : [keystatic()])],
+    ...(isGithubActions ? { base: '/Myself' } : {}),
+    integrations: [mdx(), sitemap(), react(), ...(isGithubActions ? [] : [keystatic()])],
 
     fonts: [
         {
