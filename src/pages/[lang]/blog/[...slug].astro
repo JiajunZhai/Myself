@@ -35,7 +35,7 @@ const t = useTranslations(pageLang);
 const translatePath = useTranslatedPath(pageLang);
 ---
 
-<BaseLayout title={post.data.title} description={post.data.description} image={`/og/${post.slug}.png`}>
+<BaseLayout title={post.data.title} description={post.data.description} image={`/og/${post.id}.png`}>
 	<ReadingProgress />
 	<Header />
 	
@@ -69,7 +69,7 @@ const translatePath = useTranslatedPath(pageLang);
 
 					<div class="flex flex-wrap justify-center lg:justify-start gap-2 mb-8">
 						{post.data.tags?.map(tag => (
-							<a href={`/blog?tag=${tag}`} class="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full text-sm hover:bg-accent hover:text-white transition-colors">
+							<a href={`${translatePath('/blog')}?tag=${tag}`} class="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full text-sm hover:bg-accent hover:text-white transition-colors">
 								#{tag}
 							</a>
 						))}

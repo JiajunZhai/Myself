@@ -1,14 +1,17 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { getLangFromUrl, useTranslatedPath } from '../../i18n/utils';
 
 interface Props {
   post: CollectionEntry<'blog'>;
 }
 
 const { post } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const translatePath = useTranslatedPath(lang);
 ---
 
-<a href={`/blog/${post.slug}`} class="group flex flex-col justify-between p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+<a href={translatePath(`/blog/${post.id}`)} class="group flex flex-col justify-between p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
   <div>
     <div class="flex items-center gap-3 text-sm text-gray-500 mb-3">
       <time datetime={post.data.pubDate.toISOString()}>
