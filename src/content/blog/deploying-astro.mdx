@@ -1,0 +1,30 @@
+---
+title: "Deploying Astro 6 with GitHub Actions"
+description: "A comprehensive guide on overcoming GitHub Pages base path resolutions and CI dynamic environment issues."
+pubDate: 2026-04-09
+tags: ["DevOps", "GitHub", "CI/CD"]
+draft: false
+lang: "en"
+---
+
+# Overcoming Cloud Build Quirks ☁️
+
+When deploying static sites to subdirectories (like `username.github.io/Myself`), developers often encounter routing nightmares where internal links resolve to the absolute domain root. 
+
+In this garden, I've solved this fundamentally.
+
+### The CI Detection Hook
+
+Instead of relying on standard Node process execution parameters—which can be obscured by hidden sub-processes in GitHub's runners—we directly tap into GitHub's immutable environment variables.
+
+```javascript
+// astro.config.mjs
+const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
+
+export default defineConfig({
+    site: 'https://JiajunZhai.github.io',
+    ...(isGithubActions ? { base: '/Myself' } : {}),
+});
+```
+
+Because of this, `import.meta.env.BASE_URL` acts as a perfect mathematical bridge, prefixing all translations and asset resolutions dynamically!
