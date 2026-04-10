@@ -1,0 +1,61 @@
+---
+// Placeholder for Giscus.
+// User will provide actual repo, repoId, category, and categoryId via .env variables
+const repo = import.meta.env.PUBLIC_GISCUS_REPO || '';
+const repoId = import.meta.env.PUBLIC_GISCUS_REPO_ID || '';
+const category = import.meta.env.PUBLIC_GISCUS_CATEGORY || '';
+const categoryId = import.meta.env.PUBLIC_GISCUS_CATEGORY_ID || '';
+---
+<section class="giscus-section mt-16 pt-8 border-t border-gray-200 dark:border-gray-800">
+  <div class="giscus"></div>
+</section>
+
+<script is:inline define:vars={{ repo, repoId, category, categoryId }}>
+  function renderGiscus() {
+    const theme = document.documentElement.classList.contains('dark') ? 'transparent_dark' : 'light';
+// repo variables are passed from Astro define:vars
+    if (!repo || repo === '') return; // Skip if unset
+
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.setAttribute("data-repo", repo); 
+    script.setAttribute("data-repo-id", repoId); 
+    script.setAttribute("data-category", category); 
+    script.setAttribute("data-category-id", categoryId); 
+    script.setAttribute("data-mapping", "pathname");
+    script.setAttribute("data-strict", "0");
+    script.setAttribute("data-reactions-enabled", "1");
+    script.setAttribute("data-emit-metadata", "0");
+    script.setAttribute("data-input-position", "bottom");
+    script.setAttribute("data-theme", theme);
+    const lang = document.documentElement.lang === 'zh-CN' ? 'zh-CN' : 'en';
+    script.setAttribute("data-lang", lang);
+    script.crossOrigin = "anonymous";
+    script.async = true;
+
+    const giscusEl = document.querySelector(".giscus");
+    if (giscusEl) {
+        giscusEl.innerHTML = "";
+        giscusEl.appendChild(script);
+    }
+  }
+
+  document.addEventListener('astro:page-load', () => {
+    // Only render if we have the giscus container
+    if (document.querySelector(".giscus")) {
+        renderGiscus();
+    }
+  });
+
+  // Re-render when theme changes (Mutation Observer on html element)
+  if (typeof window !== 'undefined') {
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.attributeName === 'class' && document.querySelector(".giscus")) {
+                renderGiscus();
+            }
+        });
+    });
+    observer.observe(document.documentElement, { attributes: true });
+  }
+</script>

@@ -1,0 +1,23 @@
+---
+import { siteConfig } from '../../site.config';
+import { getLangFromUrl, useTranslations, useTranslatedPath } from '../../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const translatePath = useTranslatedPath(lang);
+---
+<footer class="py-12 mt-12 border-t border-gray-200 dark:border-gray-800">
+  <div class="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-gray-500 dark:text-gray-400 text-sm md:text-base">
+    <p>{t('footer.copyright').replace('{year}', new Date().getFullYear().toString())}</p>
+    
+    <div class="flex gap-4 items-center flex-wrap justify-center">
+      <a href="/rss.xml" class="hover:text-accent transition-colors flex items-center gap-2">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6-3v.01" /></svg>
+        {t('footer.rss')}
+      </a>
+      <a href={translatePath('/')} class="hover:text-accent transition-colors">{t('nav.home')}</a>
+      <a href={translatePath('/blog')} class="hover:text-accent transition-colors">{t('nav.blog')}</a>
+      <a href={translatePath('/projects')} class="hover:text-accent transition-colors">{t('nav.projects')}</a>
+    </div>
+  </div>
+</footer>

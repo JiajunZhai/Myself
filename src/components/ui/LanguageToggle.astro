@@ -1,0 +1,15 @@
+---
+import { languages } from '../../i18n/ui';
+import { getLangFromUrl } from '../../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const path = Astro.url.pathname.replace(/^\/(en|zh)/, ''); // Remove current lang prefix
+
+const targetLang = lang === 'en' ? 'zh' : 'en';
+const targetPath = `/${targetLang}${path || '/'}`;
+const label = lang === 'en' ? 'ZH' : 'EN';
+---
+
+<a href={targetPath} class="px-2 py-1 text-xs font-bold font-mono border border-gray-200 dark:border-gray-800 rounded-md text-gray-500 hover:text-accent dark:hover:text-accent hover:border-accent dark:hover:border-accent transition-colors">
+  {label}
+</a>

@@ -1,0 +1,47 @@
+---
+title: "深入浅出 Astro Content Collections"
+description: "探究 Astro 中的内容集合功能，以及如何配合 Zod 实现严谨的类型推导。"
+pubDate: 2024-03-21
+tags: ["Astro", "TypeScript", "教程"]
+draft: false
+---
+
+# Content Collections 探秘 🧐
+
+在 Astro 中，所有的 Markdown 或 MDX 文件都可以通过 Content Collections 来安全地管理。通过结合 **Zod**，我们在编写静态博客时甚至也能享受强类型的快感！
+
+## 1. 核心流程
+
+1. 在 `src/content/config.ts` 定义 Schema
+2. 放入带有 frontmatter 的 `.md` / `.mdx` 文件
+3. 用 `getCollection` API 读取并在页面遍历
+
+## 2. Zod 的强大之处
+
+看看我们的定义：
+
+```ts
+import { z, defineCollection } from 'astro:content';
+
+const blog = defineCollection({
+  schema: z.object({
+    title: z.string(),
+    tags: z.array(z.string()).default([]),
+  }),
+});
+```
+
+如果不小心少写了 `title`，在 `npm run dev` 阶段 Astro 直接就会报错告诉你。这极大地避免了线上出现奇奇怪怪的缺少变量导致 UI 崩溃的问题！
+
+## 3. MDX 的交互性
+
+你甚至可以在这种文章里扔一个 React 组件进去：
+
+```mdx
+import { MyCounter } from '../../components/MyCounter';
+
+点击计数器试试看：
+<MyCounter client:visible />
+```
+
+真是太极客啦！

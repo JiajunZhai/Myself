@@ -1,0 +1,115 @@
+---
+const isProd = import.meta.env.PROD;
+---
+<div id="search-modal" class="fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-200">
+  <!-- Backdrop -->
+  <div id="search-backdrop" class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm cursor-pointer"></div>
+  
+  <!-- Dialog -->
+  <div class="absolute inset-x-4 top-[15%] md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-xl bg-white dark:bg-[#09090b] rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden transform scale-95 transition-transform duration-200" id="search-dialog">
+    <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+      <div class="flex items-center gap-2 text-gray-500">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        <span class="text-sm font-medium">Search</span>
+      </div>
+      <button id="close-search" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+        <kbd class="hidden md:inline-block px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 rounded mx-1 font-mono">ESC</kbd>
+      </button>
+    </div>
+    <div class="p-4 max-h-[60vh] overflow-y-auto w-full">
+      <div id="search-container" class="w-full"></div>
+    </div>
+  </div>
+</div>
+
+{isProd && <link href="/pagefind/pagefind-ui.css" rel="stylesheet">}
+<style is:global>
+  /* Override Pagefind UI variables to match our theme */
+  :root {
+    --pagefind-ui-scale: 0.9;
+    --pagefind-ui-primary: var(--color-accent, #38bdf8);
+    --pagefind-ui-text: #1a1a1a;
+    --pagefind-ui-background: #ffffff;
+    --pagefind-ui-border: #e5e7eb;
+    --pagefind-ui-border-width: 1px;
+    --pagefind-ui-border-radius: 8px;
+  }
+  
+  :root[data-theme="dark"] {
+    --pagefind-ui-primary: var(--color-accent, #38bdf8);
+    --pagefind-ui-text: #e4e4e7;
+    --pagefind-ui-background: #09090b;
+    --pagefind-ui-border: #27272a;
+  }
+</style>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const modal = document.getElementById('search-modal');
+    const backdrop = document.getElementById('search-backdrop');
+    const closeBtn = document.getElementById('close-search');
+    const dialog = document.getElementById('search-dialog');
+    
+    let isInitialized = false;
+
+    const openSearch = () => {
+      if (modal && dialog) {
+        modal.classList.remove('hidden');
+        // prompt reflow
+        requestAnimationFrame(() => {
+          modal.classList.remove('opacity-0');
+          dialog.classList.remove('scale-95');
+        });
+        
+        const tryFocus = (attempts = 0) => {
+          const input = document.querySelector('#search-container input') as HTMLInputElement;
+          if (input) {
+            // some browsers need a tiny delay after becoming visible
+            setTimeout(() => input.focus(), 50);
+          } else if (attempts < 50) { // wait up to 2.5 seconds
+            setTimeout(() => tryFocus(attempts + 1), 50);
+          }
+        };
+
+        if (!isInitialized && window.PagefindUI) {
+          new window.PagefindUI({ element: "#search-container", showSubResults: true, showImages: false });
+          isInitialized = true;
+          tryFocus();
+        } else {
+          tryFocus();
+        }
+      }
+    };
+
+    const closeSearch = () => {
+      if (modal && dialog) {
+        modal.classList.add('opacity-0');
+        dialog.classList.add('scale-95');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+        }, 200);
+      }
+    };
+
+    // Remove old listener to avoid duplicates on astro:page-load
+    const handleKeydown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        openSearch();
+      }
+      if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+        closeSearch();
+      }
+    };
+    
+    document.removeEventListener('keydown', window._searchKeydownHandler);
+    window._searchKeydownHandler = handleKeydown;
+    document.addEventListener('keydown', window._searchKeydownHandler);
+
+    backdrop?.addEventListener('click', closeSearch);
+    closeBtn?.addEventListener('click', closeSearch);
+  });
+</script>
+
+<!-- Load pagefind JS only after interaction or mount -->
+{isProd && <script is:inline src="/pagefind/pagefind-ui.js" defer></script>}

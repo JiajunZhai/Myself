@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "PingFang SC", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* Accent default to Cyberpunk Blue */
+  --color-accent: #38bdf8;
+  --color-accent-hover: #0ea5e9;
+
+  --color-bg-light: #ffffff;
+  --color-bg-dark: #09090b;
+
+  --color-text-light: #18181b;
+  --color-text-dark: #e4e4e7;
+}
+
+@layer base {
+
+  /* 无闪烁暗黑模式基础设置 */
+  :root {
+    --bg-color: #ffffff;
+    --text-color: #1a1a1a;
+  }
+
+  :root[data-theme='dark'] {
+    --bg-color: #09090b;
+    --text-color: #e4e4e7;
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    @apply font-sans antialiased relative min-h-screen;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -10;
+    pointer-events: none;
+    background-size: 50px 50px;
+    background-image: 
+      linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px);
+    mask-image: radial-gradient(ellipse at top, black 0%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at top, black 0%, transparent 70%);
+  }
+
+  :root[data-theme='dark'] body::before {
+    background-image: 
+      linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+  }
+
+  /* Typography Markdown styles */
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4 {
+    @apply font-bold text-gray-900 dark:text-gray-100;
+  }
+
+  .prose a {
+    @apply text-accent hover:text-accent-hover transition-colors;
+  }
+}

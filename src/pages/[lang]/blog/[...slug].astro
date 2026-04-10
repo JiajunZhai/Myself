@@ -1,0 +1,100 @@
+---
+import { type CollectionEntry, getCollection, render } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Header from '../../../components/layout/Header.astro';
+import Footer from '../../../components/layout/Footer.astro';
+import TOC from '../../../components/blog/TOC.astro';
+import ReadingProgress from '../../../components/blog/ReadingProgress.astro';
+import GiscusComments from '../../../components/blog/GiscusComments.astro';
+import { languages } from '../../../i18n/ui';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+    const paths: any[] = [];
+    Object.keys(languages).forEach((lang) => {
+      posts.forEach((post) => {
+        if (post.data.lang === lang || (!post.data.lang && lang === 'zh')) {
+            paths.push({
+                params: { lang, slug: post.id },
+                props: post,
+            });
+        }
+      });
+    });
+	return paths;
+}
+type Props = CollectionEntry<'blog'>;
+
+const post = Astro.props;
+const { Content, headings } = await render(post);
+const readingTimeResult = Math.ceil(post.body ? post.body.length / 500 : 3); // simple approximation initially
+
+import { getLangFromUrl, useTranslations, useTranslatedPath } from '../../../i18n/utils';
+const pageLang = getLangFromUrl(Astro.url);
+const t = useTranslations(pageLang);
+const translatePath = useTranslatedPath(pageLang);
+---
+
+<BaseLayout title={post.data.title} description={post.data.description} image={`/og/${post.slug}.png`}>
+	<ReadingProgress />
+	<Header />
+	
+	<main class="flex-grow py-12 max-w-5xl mx-auto px-4 w-full relative">
+		<!-- Back button -->
+		<a href={translatePath('/blog')} class="inline-flex items-center text-sm text-gray-500 hover:text-accent font-medium mb-8 transition-colors">
+			<svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+			{t('blog.backToAll')}
+		</a>
+
+		<div class="flex flex-col lg:flex-row gap-12">
+			<!-- Main content -->
+			<article class="flex-grow max-w-3xl w-full">
+				<!-- Post Header -->
+				<header class="mb-10 text-center lg:text-left">
+					<div class="flex items-center justify-center lg:justify-start gap-4 text-sm text-gray-500 mb-4 font-mono">
+						<time datetime={post.data.pubDate.toISOString()}>
+							{post.data.pubDate.toLocaleDateString('en-US', {
+								year: 'numeric',
+								month: 'long',
+								day: 'numeric',
+							})}
+						</time>
+						<span>•</span>
+						<span>~{readingTimeResult} {t('blog.minRead')}</span>
+					</div>
+					
+					<h1 class="text-3xl md:text-5xl font-extrabold tracking-tight mb-6 leading-tight">
+						{post.data.title}
+					</h1>
+
+					<div class="flex flex-wrap justify-center lg:justify-start gap-2 mb-8">
+						{post.data.tags?.map(tag => (
+							<a href={`/blog?tag=${tag}`} class="px-3 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full text-sm hover:bg-accent hover:text-white transition-colors">
+								#{tag}
+							</a>
+						))}
+					</div>
+					
+					{post.data.heroImage && (
+						<img class="w-full h-auto rounded-2xl shadow-md border border-gray-100 dark:border-gray-800" src={post.data.heroImage} alt="" />
+					)}
+				</header>
+
+				<!-- Post Body -->
+				<div class="prose prose-lg dark:prose-invert max-w-none">
+					<Content />
+				</div>
+
+				<!-- Comments -->
+				<GiscusComments />
+			</article>
+
+			<!-- Sidebar / TOC -->
+			<aside class="hidden lg:block w-64 shrink-0">
+				<TOC headings={headings} />
+			</aside>
+		</div>
+	</main>
+
+	<Footer />
+</BaseLayout>

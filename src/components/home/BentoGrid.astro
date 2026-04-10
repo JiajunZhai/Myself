@@ -1,0 +1,231 @@
+---
+import { getNowPlaying } from '../../utils/spotify';
+import { getWakaTimeStats } from '../../utils/wakatime';
+import { getTopProjects } from '../../utils/github';
+import { getLangFromUrl, useTranslations } from '../../i18n/utils';
+
+interface Props {
+  skills?: any[];
+  socials?: any[];
+}
+const { skills = [], socials = [] } = Astro.props;
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+let spotifyData = null;
+try {
+  const response = await getNowPlaying();
+  if (response && response.status === 200) {
+    const song = await response.json();
+    const isPlaying = song.is_playing;
+    const title = song.item.name;
+    const artist = song.item.artists.map((_artist: any) => _artist.name).join(', ');
+    const albumImageUrl = song.item.album.images[0].url;
+    const songUrl = song.item.external_urls.spotify;
+    
+    spotifyData = { isPlaying, title, artist, albumImageUrl, songUrl };
+  }
+} catch (e) {
+  console.log("Spotify fetch error or offline");
+}
+
+// 模拟数据：如果无法获取 Spotify 数据或暂未配置 API，则展示以下硬核模拟数据
+if (!spotifyData || !spotifyData.isPlaying) {
+  spotifyData = { 
+    isPlaying: true, 
+    title: "Night City (feat. Rel)", 
+    artist: "R R B, Rel", 
+    albumImageUrl: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=150&h=150&fit=crop&q=80", 
+    songUrl: "#" 
+  };
+}
+
+let wakatimeData = null;
+try {
+  const wResponse = await getWakaTimeStats();
+  if (wResponse && wResponse.data) {
+    wakatimeData = wResponse.data;
+  }
+} catch (e) {
+  console.log("WakaTime fetch error");
+}
+
+// 模拟数据：如果无法获取 WakaTime 数据，展示超强的代码数据
+if (!wakatimeData) {
+  wakatimeData = {
+    human_readable_total: lang.startsWith('zh') ? "1,337 小时 42 分钟" : "1,337 hrs 42 mins",
+    languages: [
+      { name: "TypeScript", percent: 45.2 },
+      { name: "Astro", percent: 38.6 }
+    ]
+  };
+}
+
+const fetchedProjects = await getTopProjects(1);
+const featuredProject = fetchedProjects.length > 0 ? fetchedProjects[0] : {
+  name: lang.startsWith('zh') ? "硬核个人数字花园" : "Awesome Personal Blog",
+  description: lang.startsWith('zh') 
+    ? "基于 Astro 构建的极致性能个人博客与作品集，融合完美赛博朋克美学。" 
+    : "A blazingly fast Astro portfolio and blog built with true cyberpunk aesthetics.",
+  language: "Astro",
+  url: "/projects"
+};
+---
+
+<section class="pb-20">
+  <div class="max-w-4xl mx-auto px-4">
+    <h2 class="text-2xl font-bold mb-8 items-center flex gap-2">
+      <span class="text-accent">#</span> {t('bento.overview')}
+    </h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 auto-rows-[200px]">
+      
+      <!-- Tech Stack (1 col) -->
+      <div class="bento-card relative group overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm p-6 hover:border-[#FACC15]/50 transition-colors border-t-4 border-t-[#FACC15]">
+        <h3 class="text-sm font-bold text-[#FACC15] mb-2 uppercase tracking-wider">{t('bento.tech')}</h3>
+        <div class="flex flex-wrap gap-2 mt-4">
+          {skills.map((skill) => (
+            <span class="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md text-xs font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1" title={`${skill.data.level}%`}>
+              {skill.data.name}
+            </span>
+          ))}
+          {skills.length === 0 && (
+            <span class="text-xs text-gray-500">Skills data missing...</span>
+          )}
+        </div>
+      </div>
+
+      <!-- WakaTime (1 col) -->
+      {wakatimeData ? (
+        <div class="bento-card relative group overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm p-6 hover:border-[#38bdf8]/50 transition-colors border-t-4 border-t-[#38bdf8] flex flex-col justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-[#38bdf8] mb-2 uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              {t('bento.coding')}
+            </h3>
+            <div class="text-2xl font-bold mt-2">{wakatimeData.human_readable_total}</div>
+          </div>
+          <div>
+            {wakatimeData.languages && wakatimeData.languages.slice(0, 2).map((lang: any) => (
+              <div class="flex justify-between text-xs text-gray-500 mt-1">
+                <span>{lang.name}</span>
+                <span>{lang.percent}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div class="bento-card relative group overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm p-6 hover:border-[#38bdf8]/30 transition-colors border-t-4 border-t-gray-300 dark:border-t-gray-700 flex flex-col justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              {t('bento.coding') || 'CODE FLOW'}
+            </h3>
+            <div class="mt-4 space-y-3">
+              <div class="h-8 bg-gray-200 dark:bg-gray-800 rounded-lg w-3/4 animate-pulse"></div>
+              <div class="flex flex-col gap-2 pt-2">
+                <div class="flex justify-between items-center">
+                  <div class="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/4 animate-pulse"></div>
+                  <div class="h-3 bg-gray-200 dark:bg-gray-800 rounded w-12 animate-pulse"></div>
+                </div>
+                 <div class="flex justify-between items-center delay-75">
+                  <div class="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/3 animate-pulse"></div>
+                  <div class="h-3 bg-gray-200 dark:bg-gray-800 rounded w-10 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-xs text-gray-400 mt-4 flex items-center gap-2">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#38bdf8] opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-[#38bdf8]"></span>
+            </span>
+            Deep Work Mode...
+          </div>
+        </div>
+      )}
+
+      <!-- Spotify (1 col) -->
+      {spotifyData && spotifyData.isPlaying ? (
+        <a href={spotifyData.songUrl} target="_blank" rel="noopener noreferrer" class="bento-card relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm p-6 hover:border-[#1DB954]/50 transition-colors flex flex-col justify-between group">
+           <div>
+             <h3 class="text-sm font-bold text-[#1DB954] mb-2 uppercase tracking-wider flex items-center gap-2">
+               <svg class="w-4 h-4 animate-spin-slow" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zM20.04 10.56C15.84 8.04 9.24 7.8 5.4 8.94c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.32-1.26 11.52-1.02 16.2 1.74.54.3.72 1.02.42 1.56-.299.42-1.02.6-1.56.42z"/></svg>
+               {t('bento.spotify')}
+             </h3>
+           </div>
+           <div class="flex items-center gap-4">
+             <img src={spotifyData.albumImageUrl} alt="Album Art" class="w-12 h-12 rounded shadow-md group-hover:scale-105 transition-transform" />
+             <div class="overflow-hidden">
+               <div class="font-bold text-gray-900 dark:text-white truncate">{spotifyData.title}</div>
+               <div class="text-sm text-gray-500 dark:text-gray-400 truncate">{spotifyData.artist}</div>
+             </div>
+           </div>
+        </a>
+      ) : (
+        <div class="bento-card relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm p-6 flex flex-col justify-between group hover:border-[#1DB954]/30 transition-colors">
+          <div>
+            <h3 class="text-sm font-bold text-gray-400 mb-2 uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.54.659.301 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.241 1.2zM20.04 10.56C15.84 8.04 9.24 7.8 5.4 8.94c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.32-1.26 11.52-1.02 16.2 1.74.54.3.72 1.02.42 1.56-.299.42-1.02.6-1.56.42z"/></svg>
+              Not Playing
+            </h3>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 rounded-lg shadow-inner flex items-center justify-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-white/20 dark:bg-white/5 animate-pulse"></div>
+                <svg class="w-6 h-6 text-gray-400 dark:text-gray-600 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+            </div>
+            <div class="flex-1">
+              <div class="h-4 bg-gray-200 dark:bg-gray-800 rounded w-3/4 mb-2 animate-pulse"></div>
+              <div class="h-3 bg-gray-200 dark:bg-gray-800 rounded w-1/2 animate-pulse" style="animation-delay: 150ms;"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <!-- Latest Project (Spans 3 cols on desktop) -->
+      <a href={featuredProject.url || '/projects'} target={featuredProject.url.startsWith('http') ? '_blank' : '_self'} class="bento-card md:col-span-3 relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm p-6 hover:shadow-lg transition-all group block">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 class="text-xs font-bold text-gray-400 mb-1 uppercase tracking-wider">{t('bento.projects.featured')}</h3>
+            <h3 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent to-purple-500 mb-2">{featuredProject.name}</h3>
+            <p class="text-gray-500 dark:text-gray-400">{featuredProject.description}</p>
+          </div>
+          <svg class="w-6 h-6 text-gray-400 group-hover:text-accent transition-colors shrink-0 ml-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+        </div>
+        <div class="mt-4 flex gap-4">
+          {featuredProject.language && (
+            <span class="flex items-center text-sm text-gray-500">
+              <span class="w-3 h-3 rounded-full bg-accent mr-2"></span>{featuredProject.language}
+            </span>
+          )}
+          {featuredProject.stars !== undefined && (
+            <span class="flex items-center text-sm text-gray-500">
+              <svg class="w-4 h-4 text-yellow-500 mr-1" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+              {featuredProject.stars}
+            </span>
+          )}
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<script>
+  import VanillaTilt from 'vanilla-tilt';
+
+  document.addEventListener('astro:page-load', () => {
+    const cards = document.querySelectorAll('.bento-card');
+    if (cards.length > 0) {
+      VanillaTilt.init(Array.from(cards) as HTMLElement[], {
+        max: 5,
+        speed: 400,
+        glare: true,
+        "max-glare": 0.15,
+        scale: 1.02
+      });
+    }
+  });
+</script>

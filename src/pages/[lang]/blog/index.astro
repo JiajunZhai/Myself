@@ -1,0 +1,82 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Header from '../../../components/layout/Header.astro';
+import Footer from '../../../components/layout/Footer.astro';
+import PostCard from '../../../components/blog/PostCard.astro';
+import TagCloud from '../../../components/blog/TagCloud.astro';
+import { getCollection } from 'astro:content';
+import { languages } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return Object.keys(languages).map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params;
+
+import { getLangFromUrl, useTranslations, useTranslatedPath } from '../../../i18n/utils';
+const pageLang = getLangFromUrl(Astro.url);
+const t = useTranslations(pageLang);
+const translatePath = useTranslatedPath(pageLang);
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft && data.lang === lang);
+allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+// Group by year
+const postsByYear = allPosts.reduce((acc, post) => {
+  const year = post.data.pubDate.getFullYear();
+  if (!acc[year]) acc[year] = [];
+  acc[year].push(post);
+  return acc;
+}, {} as Record<number, typeof allPosts>);
+
+const years = Object.keys(postsByYear).map(Number).sort((a, b) => b - a);
+
+const tag = Astro.url.searchParams.get('tag') || '';
+let filteredYears = years;
+if (tag) {
+  // if filtered, we don't group by year for simplicity, just show the filtered posts
+}
+---
+
+<BaseLayout title={t('blog.archive')}>
+  <Header />
+  <main class="flex-grow py-12 max-w-4xl mx-auto px-4 w-full">
+    <div class="flex flex-col md:flex-row gap-12">
+      <div class="flex-grow">
+        <h1 class="text-4xl font-bold mb-8">{t('blog.archive')}</h1>
+        
+        {tag ? (
+          <div>
+            <h2 class="text-2xl font-bold mb-6 border-b border-gray-200 dark:border-gray-800 pb-2">{t('blog.tagged')} <span class="text-accent">#{tag}</span></h2>
+            <div class="grid gap-6">
+              {allPosts.filter(p => p.data.tags?.includes(tag)).map(post => (
+                <PostCard post={post} />
+              ))}
+            </div>
+            <a href={translatePath('/blog')} class="mt-8 inline-block text-accent hover:underline">{t('blog.backToAll')}</a>
+          </div>
+        ) : (
+          years.map(year => (
+            <div class="mb-12">
+              <h2 class="text-2xl font-bold mb-6 border-b border-gray-200 dark:border-gray-800 pb-2 flex items-center gap-2">
+                <span class="text-accent text-lg">📁</span> {year}
+              </h2>
+              <div class="grid gap-6">
+                {postsByYear[year].map(post => (
+                  <PostCard post={post} />
+                ))}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <aside class="w-full md:w-64 shrink-0">
+        <div class="sticky top-24">
+          <TagCloud />
+        </div>
+      </aside>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>

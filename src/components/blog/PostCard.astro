@@ -1,0 +1,40 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+---
+
+<a href={`/blog/${post.slug}`} class="group flex flex-col justify-between p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+  <div>
+    <div class="flex items-center gap-3 text-sm text-gray-500 mb-3">
+      <time datetime={post.data.pubDate.toISOString()}>
+        {post.data.pubDate.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })}
+      </time>
+      {post.data.tags && post.data.tags.length > 0 && (
+        <>
+          <span>•</span>
+          <span class="inline-flex items-center text-accent">{post.data.tags[0]}</span>
+        </>
+      )}
+    </div>
+    
+    <h3 class="text-xl font-bold mb-2 group-hover:text-accent transition-colors">
+      {post.data.title}
+    </h3>
+    <p class="text-gray-600 dark:text-gray-400 line-clamp-2">
+      {post.data.description}
+    </p>
+  </div>
+  
+  <div class="mt-6 flex items-center text-sm text-accent font-medium opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0">
+    Read more <svg class="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+  </div>
+</a>

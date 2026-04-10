@@ -1,0 +1,42 @@
+---
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+
+// Calculate tag frequencies
+const tagCounts = allPosts.reduce((acc, post) => {
+  post.data.tags?.forEach((tag) => {
+    acc[tag] = (acc[tag] || 0) + 1;
+  });
+  return acc;
+}, {} as Record<string, number>);
+
+const tags = Object.entries(tagCounts)
+  .sort((a, b) => b[1] - a[1]) // Sort by frequency
+  .map(([name, count]) => ({ name, count }));
+
+// Simple size calculation between 0.8rem and 1.5rem based on frequency
+const maxCount = Math.max(...tags.map(t => t.count), 1);
+const calculateSize = (count: number) => {
+  const minSize = 0.8;
+  const maxSize = 1.5;
+  const size = minSize + (count / maxCount) * (maxSize - minSize);
+  return `${size.toFixed(2)}rem`;
+};
+---
+
+<div class="mb-8">
+  <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Tags Cloud</h3>
+  <div class="flex flex-wrap gap-x-4 gap-y-2">
+    {tags.map(tag => (
+      <a 
+        href={`/blog?tag=${encodeURIComponent(tag.name)}`}
+        class="inline-block hover:text-accent transition-colors"
+        style={{ fontSize: calculateSize(tag.count), opacity: 0.7 + (tag.count/maxCount)*0.3 }}
+        title={`${tag.name} (${tag.count})`}
+      >
+        #{tag.name}
+      </a>
+    ))}
+  </div>
+</div>

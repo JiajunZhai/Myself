@@ -1,0 +1,66 @@
+---
+---
+<div class="marquee-wrapper overflow-hidden py-16 relative my-16 border-y border-gray-100 dark:border-gray-800/80 bg-gray-50/30 dark:bg-gray-900/10 backdrop-blur-md group flex flex-col gap-8">
+  <div class="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white dark:from-[var(--bg-color)] to-transparent z-10 pointer-events-none"></div>
+  <div class="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white dark:from-[var(--bg-color)] to-transparent z-10 pointer-events-none"></div>
+  
+  <!-- Row 1: Frontend (Moves Left) -->
+  <div class="marquee-track flex w-max gap-16 font-mono text-3xl md:text-6xl font-black text-gray-200 dark:text-gray-800/40 select-none cursor-default group-hover:[animation-play-state:paused]">
+    {Array(2).fill(0).map(() => (
+      <div class="flex items-center gap-16 shrink-0">
+        <span class="hover:text-[#3178C6] transition-colors duration-300">TYPESCRIPT</span>
+        <span class="hover:text-[#61DAFB] transition-colors duration-300">REACT.JS</span>
+        <span class="hover:text-[#38B2AC] transition-colors duration-300">TAILWINDCSS</span>
+        <span class="hover:text-[#000000] dark:hover:text-[#FFFFFF] transition-colors duration-300">NEXT.JS</span>
+        <span class="hover:text-[#F7DF1E] transition-colors duration-300">JAVASCRIPT</span>
+        <span class="hover:text-[#4FC08D] transition-colors duration-300">VUE.JS</span>
+      </div>
+    ))}
+  </div>
+
+  <!-- Row 2: Backend & System (Moves Right) -->
+  <div class="marquee-track-reverse flex w-max gap-16 font-mono text-3xl md:text-6xl font-black text-gray-200 dark:text-gray-800/40 select-none cursor-default group-hover:[animation-play-state:paused]">
+    {Array(2).fill(0).map(() => (
+      <div class="flex items-center gap-16 shrink-0">
+        <span class="hover:text-[#339933] transition-colors duration-300">NODE.JS</span>
+        <span class="hover:text-[#3776AB] transition-colors duration-300">PYTHON</span>
+        <span class="hover:text-[#E10098] transition-colors duration-300">GRAPHQL</span>
+        <span class="hover:text-[#00ADD8] transition-colors duration-300">GO_LANG</span>
+        <span class="hover:text-[#000000] dark:hover:text-[#FFFFFF] transition-colors duration-300">LINUX</span>
+        <span class="hover:text-[#F05032] transition-colors duration-300">GIT/GITHUB</span>
+      </div>
+    ))}
+  </div>
+
+  <!-- Row 3: Astro & Cyber (Moves Left) -->
+  <div class="marquee-track flex w-max gap-16 font-mono text-3xl md:text-6xl font-black text-gray-200 dark:text-gray-800/40 select-none cursor-default group-hover:[animation-play-state:paused]" style="animation-duration: 45s;">
+    {Array(2).fill(0).map(() => (
+      <div class="flex items-center gap-16 shrink-0">
+        <span class="hover:text-[#FF5D01] transition-colors duration-300">ASTRO_BUILD</span>
+        <span class="hover:text-[#00ED64] transition-colors duration-300">MONGODB</span>
+        <span class="hover:text-[#38bdf8] transition-colors duration-300">CYBERPUNK</span>
+        <span class="hover:text-[#FF4154] transition-colors duration-300">REDIS</span>
+        <span class="hover:text-[#764ABC] transition-colors duration-300">REDUX</span>
+        <span class="hover:text-[#232F3E] transition-colors duration-300">AWS_CLOUD</span>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .marquee-track {
+    animation: marquee-scroll 40s linear infinite;
+  }
+  .marquee-track-reverse {
+    animation: marquee-scroll-rev 35s linear infinite;
+  }
+  
+  @keyframes marquee-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  @keyframes marquee-scroll-rev {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+  }
+</style>
