@@ -12,7 +12,8 @@ import tailwindcss from '@tailwindcss/vite';
 const isBuild = process.argv.includes('build') || process.env.npm_lifecycle_event === 'build';
 
 export default defineConfig({
-    site: 'https://example.com',
+    site: 'https://JiajunZhai.github.io',
+    base: '/Myself',
     integrations: [mdx(), sitemap(), react(), ...(isBuild ? [] : [keystatic()])],
 
     fonts: [
