@@ -13,7 +13,7 @@ const isBuild = process.argv.includes('build') || process.env.npm_lifecycle_even
 
 export default defineConfig({
     site: 'https://JiajunZhai.github.io',
-    base: '/Myself',
+    ...(isBuild ? { base: '/Myself' } : {}),
     integrations: [mdx(), sitemap(), react(), ...(isBuild ? [] : [keystatic()])],
 
     fonts: [
